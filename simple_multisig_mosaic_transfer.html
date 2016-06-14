@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>mijin simple wallet</title>
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/components/core.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/components/x64-core.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/components/sha3.js"></script>
+<script src="multisig_mosaic_transfer.js"></script>
+<script src="nacl-fast.js"></script>
+<script src="KeyPair.js"></script>
+<script>
+
+
+var RECIPIENT_ADDRESS = "送信先アドレス";
+
+//Alice
+var SENDER_PUBLIC_KEY = "実際に送金させられるアカウントの公開鍵";
+var SENDER_ADDRESS = "実際に送金させれらるアカウントのアドレス";
+
+var SENDER_PUBLIC_KEY2 = "送金指示を行う署名者の公開鍵";
+var SENDER_PRIVATE_KEY2 = '送金指示を行う署名者の秘密鍵';
+
+var SENDER_PUBLIC_KEY3 = "未確認状態のトランザクションを承認する署名者の公開鍵"; 	//署名者B公開鍵
+var SENDER_PRIVATE_KEY3 = '未確認状態のトランザクションを承認する署名者の秘密鍵';	//署名者Bの秘密鍵
+
+var TRANSACTION_HASH = "承認ボタンから始めたい場合はここにinnerTransactionHashを記入。署名送信ボタンから始める場合は自動的に上書きされるのでこのままでOK。";
+
+//送金API URL
+var URL_TRANSACTION_ANNOUNCE = "http://xx.xxx.xxx.xx:7895/transaction/announce";
+
+//モザイク定義
+var MOSAICS = [
+	{"mosaicId":{'name': "bar",'namespaceId': "foo"},"quantity":1,"supply":100000000, "divisibility":1},
+	{"mosaicId":{'name': "xem",'namespaceId': "nem"}  ,"quantity":1000000,"supply":8999999999,"divisibility":6}
+]; 
+var MULTIPLIER = 1;		//送信セット数
+
+$(function(){
+	function sendRequestA(){
+
+		var result = confirm("モザイクを署名送信します。");
+		if(result){
+			mosaicTransferRequest().done(
+			function(data){
+				console.log(data);
+				alert(data["innerTransactionHash"]["data"]);
+				TRANSACTION_HASH = data["innerTransactionHash"]["data"];
+			});
+		}
+	}
+
+	function sendRequestB(){
+
+		var result = confirm("トランザクションの承認を行います。");
+		if(result){
+			prepareSignature().done(
+			function(data){
+				console.log(data);
+			});
+		}
+	}
+
+	$("#btnA").click(function(){sendRequestA();return false;});
+	$("#btnB").click(function(){sendRequestB();return false;});
+});
+	
+</script>
+</head>
+<body>
+
+<h1>マルチシグMOSAIC送信サンプル</h1>
+<button id="btnA">署名送信ボタン</button>
+<button id="btnB">承認ボタン</button>
+
+</body>
+</html>
